@@ -1,7 +1,7 @@
 libkm
 =====
 
-A collection of useful Linux shell functions for use in various scripting projects.
+A collection of useful shell functions for use in various [CentOS][centos] scripting projects.
 
 Overview:
 
@@ -47,5 +47,6 @@ Website: http://kmauthorized.com
 MIT: http://kma.mit-license.org
 
 
+[centos]:   http://centos.org/
 [ss]:       http://en.wikipedia.org/wiki/Shell_script
 [lf]:       http://bash.cyberciti.biz/guide/Shell_functions_library
