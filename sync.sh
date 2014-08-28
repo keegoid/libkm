@@ -10,13 +10,11 @@ echo "*                                            "
 echo "* MIT: http://kma.mit-license.org            "
 echo "*********************************************"
 
-LIB='lib'
-
-source $LIB/_km.lib
+source lib/_km.lib
 
 read -p "Press enter to sync shell librarys..."
-rsync -vrupE $LIB/ ../linux-deploy-scripts/includes
-rsync -vrupE $LIB/ ../base-middleman-html5-foundation/includes
+rsync -vrupE lib/ ../linux-deploy-scripts/includes
+rsync -vrupE lib/ ../base-middleman-html5-foundation/includes
 
 echo
 script_name "done with "

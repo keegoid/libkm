@@ -43,7 +43,8 @@ function is_root()
 function user_exists()
 {
    local u="$1"
-   grep -q "^${u}" $PASSWD_FILE && return $TRUE || return $FALSE
+   grep -qw "^${u}" $PASSWD_FILE && return $TRUE || return $FALSE
+   # -q (quiet), -w (only match whole words, otherwise "user" would match "user1" and "user2")
 }
 
 # purpose: trim shortest pattern from the left
@@ -53,6 +54,7 @@ function user_exists()
 function trim_shortest_left_pattern()
 {
    echo -n "${1#*$2}"
+   # -n (don't create newline character)
 }
 
 # purpose: trim longest pattern from the left
@@ -88,7 +90,7 @@ function trim_longest_right_pattern()
 #   $2 -> message after
 function script_name()
 {
-#   echo "$(basename "$(test -L "$1" && readlink "$1" || echo "$1")")"
+#   echo "$(basename "$(test -L "$0" && readlink "$0" || echo "$0")")"
 
    # can be accomplished with trim_longest_left_pattern instead
    echo -n "$1" && trim_longest_left_pattern $0 / && echo "$2"
@@ -100,17 +102,17 @@ function script_name()
 function run_script()
 {
    # reset back to root poject directory to run scripts
-   cd "${0%/*}/scripts"
+   cd "${PWD}/scripts"
    echo "changing directory to $_"
    # make sure dos2unix is installed
    hash dos2unix 2>/dev/null || { echo >&2 "dos2unix will be installed."; yum -y install dos2unix; }
    dos2unix -k $1 && echo "carriage returns removed"
-   chmod u+x $1 && echo "execute permissions set"
+   chmod +x $1 && echo "execute permissions set"
    chown $(logname):$(logname) $1 && echo "owner set to $(logname)"
    read -p "Press enter to run: $1"
    . ./$1
    echo
-   echo "          done with $1                       "
+   echo "          done with $1"
    echo "*********************************************"
 }
 
@@ -125,7 +127,7 @@ function get_public_key()
    echo "changing directory to $_"
    # download keyfile
    wget -nc $1
-   local KEYFILE="$2/${1##*/}" #delete longest match from left
+   local KEYFILE=$(trim_longest_left_pattern $1 /)
    # get key id
    local KEYID=$(echo $(gpg --throw-keyids < $KEYFILE) | cut --characters=11-18 | tr [A-Z] [a-z])
    # import key if it doesn't exist
