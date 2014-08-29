@@ -10,7 +10,7 @@ echo "*                                            "
 echo "* MIT: http://kma.mit-license.org            "
 echo "*********************************************"
 
-source lib/_km.lib
+source lib/libkm.sh
 
 read -p "Press enter to sync shell librarys..."
 rsync -vrupE lib/ ../linux-deploy-scripts/includes
