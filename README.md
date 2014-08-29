@@ -27,9 +27,9 @@ echo "* MIT: http://kma.mit-license.org            "
 echo "*********************************************"
 
 # source the library file
-source include/km.lib
+source include/linuxkm.lib
 # can also use the dot notation
-. include/extra.lib
+. include/gitkm.lib
 
 # calling a function from the library to check for root user permissions
 is_root && echo "root user detected, continuing..." || echo "please run this script as root user"
