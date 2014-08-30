@@ -13,7 +13,7 @@ echo "*********************************************"
 source lib/linuxkm.lib
 
 read -p "Press enter to sync shell librarys..."
-rsync -vrupE lib/ ../linux-deploy-scripts/includes
+rsync -vrupE lib/ ../linux-deploy-scripts2/includes
 rsync -vrupE lib/ ../base-middleman-html5-foundation/includes
 
 echo
