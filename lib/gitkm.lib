@@ -178,7 +178,7 @@ function commit_and_push()
       git commit -am "first commit by ${github_user}"
       commit=true
    else
-      echo "nothing to commit, skipping..."
+      echo "nothing to commit, skipping commit..."
    fi
 
    # push commits to your remote repository
