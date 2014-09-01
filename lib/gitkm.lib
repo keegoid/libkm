@@ -186,7 +186,7 @@ function commit_and_push()
       read -p "Press enter to push changes to your remote repository (GitHub)..."
       git push origin master
    else
-      echo "nothing to push, skipping..."
+      echo "nothing to push, skipping push..."
    fi
 
 }
