@@ -178,7 +178,7 @@ function commit_and_push()
       git commit -am "first commit by ${github_user}"
       commit=true
    else
-      echo "nothing to commit, skipping commit..."
+      echo "nothing to commit, skipping..."
    fi
 
    # push commits to your remote repository
@@ -186,7 +186,7 @@ function commit_and_push()
       read -p "Press enter to push changes to your remote repository (GitHub)..."
       git push origin master
    else
-      echo "nothing to push, skipping push..."
+      echo "nothing to push, skipping..."
    fi
 
 }
