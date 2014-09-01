@@ -93,12 +93,17 @@ function merge_upstream_repo()
       echo
       echo "upstream doesn't exist, skipping fetch and merge..."
    else
-      echo
-      read -p "Press enter to assign upstream repository..."
-      if $use_ssh; then
-         git remote add upstream "git@github.com:${upstream_repo}" && echo "remote upstream added: git@github.com:${upstream_repo}"
+      if git config --list | grep -q "${upstream_repo}"; then
+         echo
+         echo "upstream repo already configured: ${upstream_repo}"
       else
-         git remote add upstream "https://github.com/${upstream_repo}" && echo "remote upstream added: https://github.com/${upstream_repo}"
+         echo
+         read -p "Press enter to assign upstream repository..."
+         if $use_ssh; then
+            git remote add upstream "git@github.com:${upstream_repo}" && echo "remote upstream added: git@github.com:${upstream_repo}"
+         else
+            git remote add upstream "https://github.com/${upstream_repo}" && echo "remote upstream added: https://github.com/${upstream_repo}"
+         fi
       fi
 
       # pull in changes not present in local repository, without modifying local files
