@@ -324,9 +324,11 @@ function install_repo()
 # purpose: to install programs from a list
 # arguments:
 #   $1 -> program list (space-separated)
+#   $2 -> enable-repo (optional)
 function install_app()
 {
    local list="$1"
+   local repo="$2"
    # install applications in the list
    echo
    for app in "${list}"; do
@@ -335,7 +337,7 @@ function install_app()
       else
          echo
          read -p "Press enter to install $app..."
-         yum -y install "$app"
+         [ -v "${repo}" ] && yum -y install "$app" || yum --enablerepo="${repo}" -y install "$app"
       fi
    done
 }
