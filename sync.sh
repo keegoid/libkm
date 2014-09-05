@@ -10,11 +10,16 @@ echo "*                                            "
 echo "* MIT: http://kma.mit-license.org            "
 echo "*********************************************"
 
+LIB_DIR='includes'
+PROJECTS='linux-deploy-scripts2 base-middleman-html5-foundation'
+
 source lib/base.lib
 
 read -p "Press enter to sync shell librarys..."
-rsync -vrupE lib/ ../linux-deploy-scripts2/includes
-rsync -vrupE lib/ ../base-middleman-html5-foundation/includes
+for proj in $PROJECTS; do
+   echo "$proj"
+   rsync -vrupE "lib/" "../$proj/$LIB_DIR"
+done
 
 echo
 script_name "done with "
