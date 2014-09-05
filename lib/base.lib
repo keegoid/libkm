@@ -188,9 +188,8 @@ function gen_ssh_keys()
          echo "${ssh_dir}/id_rsa already exists"
       # if it doesn't exist, get it from root user
       elif [ -e "$HOME/.ssh/id_rsa" ] && [ -n "${u}" ]; then
-         cp $HOME/.ssh/id_rsa ${ssh_dir}
-         cp $HOME/.ssh/id_rsa.pub ${ssh_dir}
-         echo "copied $HOME/.ssh/id_rsa to ${ssh_dir}/id_rsa"
+         cp -v $HOME/.ssh/id_rsa ${ssh_dir}
+         cp -v $HOME/.ssh/id_rsa.pub ${ssh_dir}
          chmod 0600 "${ssh_dir}/id_rsa"
          echo "set 0600 permissions on ${ssh_dir}/id_rsa"
          chown -R "${u}":"${u}" "${ssh_dir}/id_rsa"
