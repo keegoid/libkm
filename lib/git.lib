@@ -227,9 +227,9 @@ function git_status()
    return $commit
 }
 
-# purpose: commit changes with git
+# purpose: commit and push changes with git
 # arguments: none
-function commit_changes()
+function commit_and_push()
 {
    local commit=$FALSE
 
