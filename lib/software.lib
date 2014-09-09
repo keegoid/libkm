@@ -168,9 +168,14 @@ function install_gem()
 # purpose: to install npm packages from a list
 # arguments:
 #   $1 -> npm list (space-separated)
+#   $2 -> install globally or into current directory (true for global, optional)
 function install_npm()
 {
    local names="$1"
+   local global=$2
+   
+   [ "${global}" == "" ] && global=true
+   
    # install npm packages in the list
    for app in $names; do
       if npm ls -gs | grep -qw "$app"; then
@@ -178,7 +183,7 @@ function install_npm()
       else
          echo
          read -p "Press enter to install $app..."
-         npm install -g "$app"
+         [ $global ] && npm install -g "$app" || npm install "$app"
       fi
    done
 }
