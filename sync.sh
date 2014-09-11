@@ -11,7 +11,7 @@ echo "* MIT: http://kma.mit-license.org            "
 echo "*********************************************"
 
 LIB_DIR='includes'
-PROJECTS='linux-deploy-scripts2 base-middleman-html5-foundation'
+PROJECTS='linux-deploy-scripts2 middleman-html5-foundation'
 
 source lib/base.lib
 
