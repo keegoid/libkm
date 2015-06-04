@@ -24,16 +24,16 @@ This is an example of how to source a library file in your [shell script][ss]:
 
 ```bash
 #!/bin/bash
-echo "*********************************************"
-echo "* An example shell script with sourced       "
-echo "* library file.                              "
-echo "*                                            "
-echo "* Author : Keegan Mullaney                   "
-echo "* Company: KM Authorized LLC                 "
-echo "* Website: http://kmauthorized.com           "
-echo "*                                            "
-echo "* MIT: http://kma.mit-license.org            "
-echo "*********************************************"
+echo "# -------------------------------------------"
+echo "# An example shell script with sourced       "
+echo "# library file.                              "
+echo "#                                            "
+echo "# Author : Keegan Mullaney                   "
+echo "# Company: KM Authorized LLC                 "
+echo "# Website: http://kmauthorized.com           "
+echo "#                                            "
+echo "# MIT: http://kma.mit-license.org            "
+echo "# -------------------------------------------"
 
 # source the library file
 source include/base.lib
