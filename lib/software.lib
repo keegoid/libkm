@@ -5,10 +5,10 @@
 # install repositories and apps
 #
 # Author : Keegan Mullaney
-# Company: KM Authorized LLC
-# Website: http://kmauthorized.com
+# Website: http://keegoid.com
+# Email  : keeganmullaney@gmail.com
 #
-# MIT: http://kma.mit-license.org
+# http://keegoid.mit-license.org
 # --------------------------------------------
 
 # set variables 
@@ -17,7 +17,7 @@ declare -r FALSE=1
  
 # names and versions of repositories/software
 SN=( EPEL   REMI   NGINX   OPENSSL   ZLIB   PCRE   FRICKLE   RUBY  )
-SV=( 7-5    7      1.9.3   1.0.2d    1.2.8  8.37   2.3       2.2.2 )
+SV=( 7-5    7      1.9.9   1.0.2f    1.2.8  8.38   2.3       2.3.0 )
 
 # URLs to check software versions for latest versions
 #    EPEL   dl.fedoraproject.org/pub/epel/7/x86_64/e/
@@ -25,8 +25,8 @@ SV=( 7-5    7      1.9.3   1.0.2d    1.2.8  8.37   2.3       2.2.2 )
 #   NGINX   nginx.org/download/
 # OPENSSL   www.openssl.org/source/
 #    ZLIB   zlib.net/
-#    PCRE   ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/
-# FRICKLE   labs.frickle.com/files/
+#    PCRE   http://ftp.csx.cam.ac.uk/pub/software/programming/pcre/
+# FRICKLE   https://github.com/FRiCKLE/ngx_cache_purge/
 #    RUBY   www.ruby-lang.org/en/downloads/
 
 # purpose: set software versions
@@ -45,7 +45,7 @@ function set_software_versions()
    done
 }
 
-# verstion variable assignments (determined by array order)
+# version variable assignments (determined by array order)
 EPEL_V="${SV[0]}"
 REMI_V="${SV[1]}"
 NGINX_V="${SV[2]}"
@@ -62,7 +62,7 @@ NGINX_URL="http://nginx.org/download/nginx-${NGINX_V}.tar.gz"
 OPENSSL_URL="http://www.openssl.org/source/openssl-${OPENSSL_V}.tar.gz"
 ZLIB_URL="http://zlib.net/zlib-${ZLIB_V}.tar.gz"
 PCRE_URL="ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/pcre-${PCRE_V}.tar.gz"
-FRICKLE_URL="http://labs.frickle.com/files/ngx_cache_purge-${FRICKLE_V}.tar.gz"
+FRICKLE_URL="https://github.com/FRiCKLE/ngx_cache_purge/archive/master.zip"
 RUBY_URL="https://get.rvm.io"
 WORDPRESS_URL="http://wordpress.org/latest.tar.gz"
 
@@ -87,62 +87,22 @@ function get_software()
    done
 }
 
-# purpose: to install a CentOS repository like EPEL, REMI, RPMforge
-# arguments:
-#   $1 -> repository name
-#   $2 -> URL for the RPM
-#   $3 -> URL for the RPM GPG key (optional)
-function install_repo()
-{
-   local repo_name="$1"
-   local rpm_url="$2"
-   local gpg_key="$3"
-   local use_gpg=1
-
-   echo
-   read -p "Press enter to check if ${repo_name} is installed..."
-   if rpm -qa | grep -qw "${repo_name}"
-   then
-      echo "${repo_name} is already installed"
-   else
-      # import rpm key
-      get_public_key "${gpg_key}"
-      use_gpg=$? # assign return value to variable
-      if [ "$use_gpg" -eq "$TRUE" ]; then
-         # list imported gpg keys
-         rpm -qa gpg*
-      fi
-      # test the rpm install
-      #echo
-      #read -p "Press enter to test install the repository..."
-      #rpm -Uvh --test "${rpm_url}"
-      # run the install
-      echo
-      read -p "Press enter to continue with ${repo_name} install..."
-      rpm -Uvh "${rpm_url}"
-      # test new repo
-      echo
-      read -p "Press enter to test the new repo..."
-      yum check-update
-   fi
-}
-
 # purpose: to install programs from a list
 # arguments:
 #   $1 -> program list (space-separated)
 #   $2 -> enable-repo (optional)
-function install_app()
+function install_apt()
 {
    local names="$1"
    local repo="$2"
    # install applications in the list
-   for app in $names; do
-      if rpm -qa | grep -qw "$app"; then
-         echo "$app is already installed"
+   for apt in $names; do
+      hash "$apt" 2>/dev/null; then
+         echo "$apt is already installed"
       else
          echo
-         read -p "Press enter to install $app..."
-         [ -z "${repo}" ] && yum -y install "$app" || yum --enablerepo="${repo}" -y install "$app"
+         read -p "Press enter to install $apt..."
+         [ -z "${repo}" ] && apt-get -y install "$apt" || { apt-add-repository "${repo}"; apt-get update; apt-get -y install "$apt"; }
       fi
    done
 }
@@ -205,16 +165,13 @@ function install_gem()
 {
    local names="$1"
    # install Ruby and RubyGems
-   if rpm -qa | grep -qw "rubypick"; then
+   if hash "rubypick" 2>/dev/null; then
       echo "rubypick is already installed"
    else
       echo
       read -p "Press enter to install Ruby and RubyGems with rubypick..."
-      yum -y install rubypick
+      install_apt "rubypick"
    fi
-#   install_ruby
-   # start using rvm
-#   source_rvm
    # update gem package manager
    echo
    read -p "Press enter to update the gem package manager..."
@@ -231,44 +188,33 @@ function install_gem()
    done
 }
 
-# purpose: install necessary dependencies for Middleman
-# arguments: none
-function init_middleman()
+# purpose: to install pips from a list
+# arguments:
+#   $1 -> pip list (space-separated)
+function install_pip()
 {
+   local names="$1"
+   # install Ruby and RubyGems
+   if hash "pip" 2>/dev/null; then
+      echo "pip is already installed"
+   else
+      echo
+      read -p "Press enter to install pip..."
+      install_apt "pip"
+   fi
+   # upgrade pip
    echo
-   read -p "Press enter to install Middleman dependencies..."
-
-   ########## YUM ##########
-
-   # install git, Node.js for running the local web server and npm for the CLI
-   install_app 'git'
-   install_app 'nodejs npm' 'epel'
-
-   ########## GEM ##########
-
-   # install necessary gems
-   echo
-   read -p "Press enter to install gems..."
-   install_gem 'middleman middleman-blog middleman-syntax middleman-livereload foundation'
-
-   # update gems
-   echo
-   read -p "Press enter to update gems..."
-   gem update
-
-   # view installed middleman gems
-   echo
-   read -p "Press enter to view installed middleman gems..."
-   gem list middleman
-
-   ########## NPM ##########
-
-   echo
-   read -p "Press enter to install npms..."
-   install_npm 'bower' true
-
-   echo
-   read -p "Press enter to view installed npms..."
-   npm ls -g
+   read -p "Press enter to upgrade pip..."
+   pip install pip --upgrade
+   # install pips in the list
+   for app in $names; do
+      if [ -n "$(pip list | grep $app)" ]; then
+         echo "pip $app is already installed"
+      else
+         echo
+         read -p "Press enter to install $app..."
+         pip install "$app"
+      fi
+   done
 }
 

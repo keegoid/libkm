@@ -3,10 +3,10 @@
 # A library of useful Linux functions
 #
 # Author : Keegan Mullaney
-# Company: KM Authorized LLC
-# Website: http://kmauthorized.com
+# Website: http://keegoid.com
+# Email  : keeganmullaney@gmail.com
 #
-# MIT: http://kma.mit-license.org
+# http://keegoid.mit-license.org
 # --------------------------------------------
 
 # set variables 
@@ -41,8 +41,8 @@ function die()
 # return: true or die with message
 function is_root() 
 {
-   [ $(id -u) -eq 0 ] && return $TRUE || return $FALSE
-#   [ "$(id -u)" != "0" ]
+#   [ $(id -u) -eq 0 ] && return $TRUE || return $FALSE
+   [ "$EUID" -eq 0 ] && return $TRUE || return $FALSE
 }
  
 # purpose: return true $user exits in /etc/passwd
@@ -132,7 +132,7 @@ function run_script()
    cd "$project_dir/scripts"
    echo "changing directory to $_"
    # make sure dos2unix is installed
-   hash dos2unix 2>/dev/null || { echo >&2 "dos2unix will be installed."; yum -y install dos2unix; }
+   hash dos2unix 2>/dev/null || { echo >&2 "dos2unix will be installed."; apt-get -y install dos2unix; }
    dos2unix -k ${script} && echo "carriage returns removed"
    chmod +x ${script} && echo "execute permissions set"
    chown $(logname):$(logname) ${script} && echo "owner set to $(logname)"
@@ -154,7 +154,7 @@ function locate_repos()
    local db=$2
    local repos
 
-   if $db; then
+   if [ "$db" = true ]; then
       repos="/home/${u}/Dropbox/Repos"
       # if dropbox directory is made, set ownership
       if mkdir -p "/home/${u}/Dropbox"; then
@@ -200,12 +200,12 @@ function gen_ssh_keys()
       if [ -e "${ssh_dir}/id_rsa" ]; then
          echo "${ssh_dir}/id_rsa already exists"
       # if it doesn't exist, get it from root user
-      elif [ -e "$HOME/.ssh/id_rsa" ] && [ -n "${u}" ]; then
-         mkdir -pv "${ssh_dir}"
-         cp -v $HOME/.ssh/id_rsa ${ssh_dir}
-         cp -v $HOME/.ssh/id_rsa.pub ${ssh_dir}
-         chmod -c 0600 "${ssh_dir}/id_rsa"
-         chown -cR "${u}":"${u}" "${ssh_dir}"
+#      elif [ -e "$HOME/.ssh/id_rsa" ] && [ -n "${u}" ]; then
+#         mkdir -pv "${ssh_dir}"
+#         cp -v $HOME/.ssh/id_rsa ${ssh_dir}
+#         cp -v $HOME/.ssh/id_rsa.pub ${ssh_dir}
+#         chmod -c 0600 "${ssh_dir}/id_rsa"
+#         chown -cR "${u}":"${u}" "${ssh_dir}"
       # if no id_rsa, create a new keypair
       else
          # create a new ssh key with provided ssh key comment
@@ -213,11 +213,11 @@ function gen_ssh_keys()
          pause "Press enter to generate a new SSH key"
          ssh-keygen -b 4096 -t rsa -C "${comment}"
          echo "SSH key generated"
-         if [ -e "$HOME/.ssh/id_rsa" ] && [ -n "${ssh_dir}/id_rsa" ]; then
-            mkdir -pv "${ssh_dir}"
-            cp -v $HOME/.ssh/id_rsa "${ssh_dir}/id_rsa"
-            cp -v $HOME/.ssh/id_rsa.pub "${ssh_dir}/id_rsa.pub"
-         fi
+#         if [ -e "$HOME/.ssh/id_rsa" ] && [ -n "${ssh_dir}/id_rsa" ]; then
+#            mkdir -pv "${ssh_dir}"
+#            cp -v $HOME/.ssh/id_rsa "${ssh_dir}/id_rsa"
+#            cp -v $HOME/.ssh/id_rsa.pub "${ssh_dir}/id_rsa.pub"
+#         fi
 	      chmod -c 0600 "${ssh_dir}/id_rsa"
          chown -cR "${u}":"${u}" "${ssh_dir}"
          echo
@@ -261,15 +261,15 @@ function authorized_ssh_keys()
 
    echo
    echo "Note: ${ssh_dir}/authorized_keys are public keys to establish"
-   echo "incoming SSH connections to this server"
+   echo "incoming SSH connections to a server"
    echo
    if [ -e "${ssh_dir}/authorized_keys" ]; then
       echo "${ssh_dir}/authorized_keys already exists for ${u}"
    else
-      passwd "${u}"
-      echo
-      echo "for su root command:"
-      passwd root # for su root command
+#      passwd "${u}"
+#      echo
+#      echo "for su root command:"
+#      passwd root # for su root command
       mkdir -pv "${ssh_dir}"
       chmod -c 0700 "${ssh_dir}"
       echo
@@ -292,12 +292,12 @@ function authorized_ssh_keys()
 function get_public_key()
 {
    local url="$1"
-   local rpm_keys="$HOME/rpm_keys"
+   local apt_keys="$HOME/apt_keys"
 
    [ -z "${url}" ] && return $FALSE
-   pause "Press enter to download and import the RPM GPG Key..."
-   mkdir -pv "$rpm_keys"
-   cd "$rpm_keys"
+   pause "Press enter to download and import the GPG Key..."
+   mkdir -pv "$apt_keys"
+   cd "$apt_keys"
    echo "changing directory to $_"
    # download keyfile
    wget -nc "$url"
@@ -305,9 +305,9 @@ function get_public_key()
    # get key id
    local key_id=$(echo $(gpg --throw-keyids < "$key_file") | cut --characters=11-18 | tr [A-Z] [a-z])
    # import key if it doesn't exist
-   if ! rpm -q "gpg-pubkey-$key_id" > /dev/null 2>&1; then
+   if ! apt-key list | grep "$key_id" > /dev/null 2>&1; then
       echo "Installing GPG public key with ID $key_id from $key_file..."
-      rpm --import "$key_file"
+      apt-key add "$key_file"
    fi
    # change directory back to previous one
    echo -n "changing directory back to " && cd -
