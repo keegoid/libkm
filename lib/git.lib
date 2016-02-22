@@ -98,7 +98,7 @@ function clone_repo()
    local repos_dir="$3"
    local use_ssh=$4
 
-   [ "${use_ssh}" == "" ] && use_ssh=false
+   [ -z "${use_ssh}" ] && use_ssh=false
 
    if [ -d "${repos_dir}/${2}" ]; then
       echo
@@ -108,7 +108,7 @@ function clone_repo()
       echo "*** NOTE ***"
       echo "Make sure \"github.com/${address}\" exists."
       read -p "Press enter to clone ${address} at GitHub..."
-      if $use_ssh; then
+      if [ "$use_ssh" = true ]; then
          git clone "git@github.com:${address}"
       else
          git clone "https://github.com/${address}"
@@ -134,9 +134,9 @@ function set_remote_repo()
    local set_upstream=$3
    local use_ssh=$4
 
-   [ "${use_ssh}" == "" ] && use_ssh=false
+   [ -z "${use_ssh}" ] && use_ssh=false
    
-   if $set_upstream && [ "${github_user}" == "keegoid" ]; then
+   if [ "$set_upstream" = true ] && [ "${github_user}" = 'keegoid' ]; then
       echo
       echo "upstream doesn't exist for $github_user, skipping..."
       return $FALSE
@@ -147,9 +147,9 @@ function set_remote_repo()
       echo "remote repo already configured: ${address}"
    else
       echo
-      if $set_upstream; then
+      if [ "$set_upstream" = true ]; then
          read -p "Press enter to assign upstream repository..."
-         if $use_ssh; then
+         if [ "$use_ssh" = true ]; then
             git remote add upstream "git@github.com:${address}" && echo "remote upstream added: git@github.com:${address}"
          else
             git remote add upstream "https://github.com/${address}" && echo "remote upstream added: https://github.com/${address}"
@@ -159,7 +159,7 @@ function set_remote_repo()
          echo "Make sure \"github.com/${address}\" exists."
          echo "Either fork and rename it, or create a new repository in your GitHub."
          read -p "Press enter to assign remote origin repository..."
-         if $use_ssh; then
+         if [ "$use_ssh" = true ]; then
             git remote add origin "git@github.com:${address}" && echo "remote origin added: git@github.com:${address}"
          else
             git remote add origin "https://github.com/${address}" && echo "remote origin added: https://github.com/${address}"

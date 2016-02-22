@@ -187,7 +187,7 @@ function gen_ssh_keys()
 #   echo "variable use_ssh = $use_ssh"
 #   pause
 
-   if $use_ssh; then
+   if [ "$use_ssh" = true ]; then
       # move id_rsa to new user account or create new SSH keypair if none exists
       echo
       pause "Press enter to continue to SSH keys..."

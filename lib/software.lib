@@ -107,8 +107,8 @@ function install_repo()
    else
       # import rpm key
       get_public_key "${gpg_key}"
-      use_gpg=$? #assign return value to variable
-      if [ "$use_gpg" == "0" ]; then
+      use_gpg=$? # assign return value to variable
+      if [ "$use_gpg" -eq "$TRUE" ]; then
          # list imported gpg keys
          rpm -qa gpg*
       fi
@@ -142,7 +142,7 @@ function install_app()
       else
          echo
          read -p "Press enter to install $app..."
-         [ "${repo}" == "" ] && yum -y install "$app" || yum --enablerepo="${repo}" -y install "$app"
+         [ -z "${repo}" ] && yum -y install "$app" || yum --enablerepo="${repo}" -y install "$app"
       fi
    done
 }
@@ -156,7 +156,7 @@ function install_npm()
    local names="$1"
    local global=$2
    
-   [ "${global}" == "" ] && global=true
+   [ -z "${global}" ] && global=true
    
    # install npm packages in the list
    for app in $names; do
