@@ -97,12 +97,12 @@ function install_apt()
    local repo="$2"
    # install applications in the list
    for apt in $names; do
-      if [ -z "$(apt-cache policy $apt | grep '(none)')" ]; then
-         echo "$apt is already installed"
-      else
+      if dpkg-query -W "$apt" >/dev/null 2>&1; then
          echo
          read -p "Press enter to install $apt..."
          [ -z "${repo}" ] && sudo apt-get -y install "$apt" || { sudo apt-add-repository "${repo}"; sudo apt-get update; sudo apt-get -y install "$apt"; }
+      else
+         echo "$apt is already installed"
       fi
    done
 }
@@ -164,18 +164,9 @@ function source_rvm()
 function install_gem()
 {
    local names="$1"
-   # install Ruby and RubyGems
-   if [ -z "$(apt-cache policy rubypick | grep '(none)')" ]; then
-      echo "rubypick is already installed"
-   else
-      echo
-      read -p "Press enter to install Ruby and RubyGems with rubypick..."
-      install_apt "rubypick"
-   fi
-   # update gem package manager
+   # make sure ruby and rubygems are installed
+   install_apt "ruby rubygems"
    echo
-   read -p "Press enter to update the gem package manager..."
-   gem update --system
    # install gems in the list
    for app in $names; do
       if $(gem list "$app" -i); then
@@ -194,13 +185,8 @@ function install_gem()
 function install_pip()
 {
    local names="$1"
-   # install Ruby and RubyGems
-   if [ -z "$(apt-cache policy pip | grep '(none)')" ]; then
-      echo "pip is already installed"
-   else
-      echo
-      read -p "Press enter to install pip..."
-      install_apt "pip"
+   # make sure pip is installed
+   install_apt "pip"
    fi
    # upgrade pip
    echo

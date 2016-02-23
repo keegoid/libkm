@@ -11,12 +11,11 @@ echo "# http://keegoid.mit-license.org              "
 echo "# --------------------------------------------"
 
 LIB_DIR='includes'
-PROJECTS='ubuntu-workstation-setup'
-#PROJECTS='linux-deploy-scripts middleman-html5-foundation/setup'
+PROJECTS='ubuntu-quick-config'
 
 source lib/base.lib
 
-read -p "Press enter to sync shell librarys..."
+read -p "Press enter to sync shell librarys to projects..."
 for proj in $PROJECTS; do
    echo "$proj"
    rsync -vrupE "lib/" "../$proj/$LIB_DIR"
