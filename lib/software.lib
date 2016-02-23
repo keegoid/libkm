@@ -98,11 +98,11 @@ function install_apt()
    # install applications in the list
    for apt in $names; do
       if dpkg-query -W "$apt" >/dev/null 2>&1; then
+         echo "$apt is already installed"
+      else
          echo
          read -p "Press enter to install $apt..."
          [ -z "${repo}" ] && sudo apt-get -y install "$apt" || { sudo apt-add-repository "${repo}"; sudo apt-get update; sudo apt-get -y install "$apt"; }
-      else
-         echo "$apt is already installed"
       fi
    done
 }
@@ -118,14 +118,16 @@ function install_npm()
    
    [ -z "${global}" ] && global=true
    
+   # make sure npm is installed
+   install_apt "npm"
    # install npm packages in the list
    for app in $names; do
       if npm ls -gs | grep -qw "$app"; then
-         echo "npm $app is already installed"
+         echo "$app is already installed"
       else
          echo
          read -p "Press enter to install $app..."
-         [ $global ] && npm install -g "$app" || npm install "$app"
+         [ $global ] && sudo npm install -g "$app" || sudo npm install "$app"
       fi
    done
 }
@@ -166,11 +168,10 @@ function install_gem()
    local names="$1"
    # make sure ruby and rubygems are installed
    install_apt "ruby rubygems"
-   echo
    # install gems in the list
    for app in $names; do
       if $(gem list "$app" -i); then
-         echo "gem $app is already installed"
+         echo "$app is already installed"
       else
          echo
          read -p "Press enter to install $app..."
@@ -185,22 +186,27 @@ function install_gem()
 function install_pip()
 {
    local names="$1"
-   # make sure pip is installed
-   install_apt "pip"
-   fi
-   # upgrade pip
-   echo
-   read -p "Press enter to upgrade pip..."
-   pip install pip --upgrade
+   # make sure python-pip and python-gpgme are installed
+   install_apt "python-pip python-gpgme"
    # install pips in the list
    for app in $names; do
-      if [ -n "$(pip list | grep $app)" ]; then
-         echo "pip $app is already installed"
+      app=$(trim_longest_right_pattern "$app" "[")
+      if pip list | grep "$app" >/dev/null 2>&1; then
+         echo "$app is already installed"
       else
          echo
          read -p "Press enter to install $app..."
-         pip install "$app"
+         sudo pip install "$app"
       fi
    done
+}
+
+# purpose: to install keybase
+function install_keybase()
+{
+   # change to Downloads directory to download file and then back to original directory
+   cd /tmp
+   curl -O https://dist.keybase.io/linux/deb/keybase-latest-amd64.deb && sudo dpkg -i keybase-latest-amd64.deb
+   cd -
 }
 
