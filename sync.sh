@@ -10,16 +10,12 @@ echo "#                                             "
 echo "# http://keegoid.mit-license.org              "
 echo "# --------------------------------------------"
 
-LIB_DIR='includes'
+LIBS_DIR='includes'
 PROJECTS='ubuntu-quick-config'
-
-source lib/base.lib
 
 read -p "Press enter to sync shell librarys to projects..."
 for proj in $PROJECTS; do
    echo "$proj"
-   rsync -vrupE --exclude "*.*~" "lib/" "../$proj/$LIB_DIR"
+   rsync -vrupE --exclude "*.*~" "lib/" "../$proj/$LIBS_DIR"
 done
-
-echo
-script_name "done with "
+echo "done with sync"
