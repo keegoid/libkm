@@ -18,7 +18,7 @@ source lib/base.lib
 read -p "Press enter to sync shell librarys to projects..."
 for proj in $PROJECTS; do
    echo "$proj"
-   rsync -vrupE "lib/" "../$proj/$LIB_DIR"
+   rsync -vrupE --exclude "*.*~" "lib/" "../$proj/$LIB_DIR"
 done
 
 echo

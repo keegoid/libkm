@@ -192,9 +192,55 @@ function source_rvm()
 # purpose: to install keybase
 function install_keybase()
 {
-   # change to Downloads directory to download file and then back to original directory
+   # change to tmp directory to download file and then back to original directory
    cd /tmp
    curl -O https://dist.keybase.io/linux/deb/keybase-latest-amd64.deb && sudo dpkg -i keybase-latest-amd64.deb
-   cd -
+   cd - >/dev/null
+}
+
+# purpose: to install newer version of virtualbox per VVV requirements
+function install_virtualbox()
+{
+   # add virtualbox to sources list
+   echo "deb http://download.virtualbox.org/virtualbox/debian trusty contrib" | sudo tee --append /etc/apt/sources.list
+   # add signing key
+   wget -q https://www.virtualbox.org/download/oracle_vbox.asc -O- | sudo apt-key add -
+   # update sources and install the latest virtualbox
+   sudo apt-get update
+   install_apt "virtualbox-5.0 dkms"
+}
+
+# purpose: to install newer version of vagrant per VVV requirements
+function install_vagrant()
+{
+   # change to tmp directory to download file and then back to original directory
+   cd /tmp
+   curl -O https://releases.hashicorp.com/vagrant/1.8.1/vagrant_1.8.1_x86_64.deb && dpkg -i vagrant_1.8.1_x86_64.deb
+   # install vagrant-hostsupdater
+   vagrant plugin install vagrant-hostsupdater
+   # install vagrant-triggers
+   vagrant plugin install vagrant-triggers
+   cd - >/dev/null
+}
+
+# purpose: to clone vvv
+function clone_vvv()
+{
+   # clone VVV to vagrants directory one level up
+   git clone https://github.com/Varying-Vagrant-Vagrants/VVV.git ../vagrants/vvv
+   echo "use \'vagrant up\' to start VVV from within ../vagrants/vvv"
+}
+
+# purpose: to clone vv
+function clone_vv()
+{
+   local clonePath="$HOME/bin/vv"
+   # clone VV to bin/vv directory
+   git clone https://github.com/bradp/vv.git "${clonePath}"
+   # add bin/vv directory to PATH
+   if ! grep -q "${clonePath}" $HOME/.profile; then
+      echo "PATH=${clonePath}:$PATH" >> $HOME/.profile
+      echo "vv directory added to PATH so vv commands will work in terminal"
+   fi
 }
 
