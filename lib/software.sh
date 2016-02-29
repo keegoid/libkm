@@ -126,7 +126,7 @@ package_install() {
       sudo apt-get -y update
 
       # install required packages
-      echo "Installing apt-get packages..."
+      read -p "Press [Enter] to install apt packages..."
       sudo apt-get -y install ${apt_package_install_list[@]}
 
       # clean up apt caches
