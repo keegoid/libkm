@@ -146,6 +146,7 @@ apt_install() {
 
       # clean up apt caches
       sudo apt-get clean
+      echo
    fi
 }
 
@@ -181,7 +182,8 @@ gem_install() {
    else
       # install required gems
       pause "Press [Enter] to install gems" true
-      sudo gem install -y ${gem_install_list[@]}
+      sudo gem install ${gem_install_list[@]}
+      echo
    fi
 }
 
@@ -225,6 +227,7 @@ npm_install() {
       # install required npms
       pause "Press [Enter] to install npms" true
       sudo npm install -g ${npm_install_list[@]}
+      echo
    fi
 }
 
@@ -246,7 +249,7 @@ pip_check() {
          space_count="$(expr 20 - "${#pkg}")"
          pack_space_count="$(expr 30 - "${#pkg_version}")"
          real_space="$(expr ${space_count} + ${pack_space_count} + ${#pkg_version})"
-         printf " * $pkg %${real_space}.${#pkg_version}s ${pkg_version}\n"
+         printf " * $pkg_trim %${real_space}.${#pkg_version}s ${pkg_version}\n"
       fi
    done
 }
@@ -266,6 +269,7 @@ pip_install() {
       # install required pips
       pause "Press [Enter] to install pips" true
       sudo -H pip install ${pip_install_list[@]}
+      echo
    fi
 }
 
