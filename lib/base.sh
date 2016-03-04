@@ -1,24 +1,42 @@
 #!/bin/bash
 # --------------------------------------------
-# A library of useful Linux functions
+# A library of useful shell functions
 #
 # Author : Keegan Mullaney
 # Website: http://keegoid.com
 # Email  : keeganmullaney@gmail.com
 #
 # http://keegoid.mit-license.org
+#
+# package install functions:
+# https://github.com/Varying-Vagrant-Vagrants/VVV/
+#
+# some message and check functions:
+# https://github.com/spf13/spf13-vim
 # --------------------------------------------
 
 # note: true=0 and false=1 in bash
 
-# for screen error messages
-declare -r LIGHT_GRAY='\033[0;47;30m'
-declare -r RED='\033[0;41;30m'
-declare -r STD='\033[0;0;39m'
+source colors.sh
 
-# purpose: converts a string to lower case
-# arguments:
-#   $1 -> string to convert to lower case
+# --------------------------  DECLARE VARIABLES
+
+# install lists (perform install)
+apt_install_list=()
+gem_install_list=()
+npm_install_list=()
+pip_install_list=()
+
+# check lists (check if installed)
+apt_check_list=()
+gem_check_list=()
+npm_check_list=()
+pip_check_list=()
+
+# --------------------------  STRING MANIPULATION
+
+# converts a string to lower case
+# $1 -> string to convert to lower case
 to_lower() {
     local str="$@"
     local output     
@@ -26,97 +44,129 @@ to_lower() {
     echo $output
 }
 
+# trim first character if match is found
+# $1 -> string
+# $2 -> match
+trim_first_character_match() {
+   echo -n "$(echo ${1:0:1} | tr -d ${2})${1:1}"
+}
 
-# purpose: trim shortest pattern from the left
-# arguments:
-#   $1 -> variable
-#   $2 -> pattern
+# trim shortest pattern from the left
+# $1 -> string
+# $2 -> pattern
 trim_shortest_left_pattern() {
    echo -n "${1#*$2}"
    # -n (don't create newline character)
 }
 
-# purpose: trim longest pattern from the left
-# arguments:
-#   $1 -> variable
-#   $2 -> pattern
+# trim longest pattern from the left
+# $1 -> string
+# $2 -> pattern
 trim_longest_left_pattern() {
    echo -n "${1##*$2}"
 }
 
-# purpose: trim shortest pattern from the right
-# arguments:
-#   $1 -> variable
-#   $2 -> pattern
+# trim shortest pattern from the right
+# $1 -> string
+# $2 -> pattern
 trim_shortest_right_pattern() {
    echo -n "${1%$2*}"
 }
 
-# purpose: trim longest pattern from the right
-# arguments:
-#   $1 -> variable
-#   $2 -> pattern
+# trim longest pattern from the right
+# $1 -> string
+# $2 -> pattern
 trim_longest_right_pattern() {
    echo -n "${1%%$2*}"
 }
 
-# purpose: to display an error message and die
-# arguments:
-#   $1 -> message
-#   $2 -> exit status (optional)
-die() {
-    local m=$1 	   # message
-    local e=${2-1}	# default exit status 1
-    printf "$m"
-    exit $e
+# --------------------------  MESSAGES
+
+msg() {
+   printf '%b\n' "$1" >&2
 }
 
-# purpose: wait for user to press enter
-# arguments:
-#   $1 -> user message
-#   #2 -> use back option?
-pause() {
-   local msg="$1"
-   local back="$2"
-   # default message
-   [ -z "${msg}" ] && msg="Press [Enter] key to continue"
-   # how to go back, with either default or user message
-   [ "$back" = true ] && msg="${msg}, [Ctrl+Z] to go back" 
-   read -p "$msg..."
+success() {
+   if [ "$ret" -eq '0' ]; then
+      msg "${GREEN_CHK} ${1}${2}"
+   fi
 }
 
-# purpose: return true if script is executed by the root user
-# arguments: none
-# return: true or die with message
+error() {
+   msg "${RED_X} ${1}${2}"
+   exit 1
+}
+
+alert() {
+   msg "${RED_BLACK} ${1}${2} ${NONE_WHITE}"
+}
+
+notify() {
+   msg "${GRAY_BLACK} ${1}${2} ${NONE_WHITE}"
+}
+
+debug() {
+   if [ "$debug_mode" -eq '1' ] && [ "$ret" -gt '1' ]; then
+      msg "An error occurred in function \"${FUNCNAME[$i+1]}\" on line ${BASH_LINENO[$i+1]}, we're sorry for that."
+   fi
+}
+
+script_name() {
+#   echo "$(basename "$(test -L "$0" && readlink "$0" || echo "$0")")"
+   echo -n "$1" && trim_longest_left_pattern "$0" "/" && echo "$2"
+}
+
+# --------------------------  CHECKS
+
 is_root() {
-#   [ $(id -u) -eq 0 ] && return 0 || return 1
-   [ "$EUID" -eq 0 ] && return 0 || return 1
+#   [ $(id -u) -eq 0 ] && return 0 || error "must be root"
+   [ "$EUID" -eq 0 ] && return 0 || error "must be root"
 }
  
-# purpose: return true if $user exits in /etc/passwd
-# arguments:
-#   $1 -> username to check in /etc/passwd
-# return: true or false
+program_exists() {
+   local ret='0'
+   command -v $1 >/dev/null 2>&1 || { local ret='1'; }
+
+   # fail on non-zero return value
+   if [ "$ret" -ne 0 ]; then
+      return 1
+   fi
+
+   return 0
+}
+
+not_installed() {
+   [ -n "$(apt-cache policy ${1} | grep 'Installed: (none)')" ] && return 0 || return 1
+}
+
 user_exists() {
-   local u="$1"
    # -q (quiet), -w (only match whole words, otherwise "user" would match "user1" and "user2")
-   if grep -qw "^${u}" /etc/passwd; then
-      #echo "user $u exists in /etc/passwd"
+   if grep -qw "^${1}" /etc/passwd; then
       return 0
    else
-      #echo "user $u does not exists in /etc/passwd"
       return 1
    fi
 }
 
-# purpose: prompt user with binary option
-# arguments:
-#   $1 -> text string to prompt user
-#   #2 -> default to no? (optional)
-# return: true or false
+variable_set() {
+   [ -z "$1" ] && error "You must have your HOME environmental variable set to continue."
+}
+
+# --------------------------  PROMPTS
+
+pause() {
+   local prompt="$1"
+   local back="$2"
+   # default message
+   [ -z "${prompt}" ] && prompt="Press [Enter] key to continue"
+   # how to go back, with either default or user message
+   [ "$back" = true ] && prompt="${prompt}, [Ctrl+Z] to go back" 
+   read -p "$prompt..."
+}
+
 confirm() {
    local text="$1"
-   local preferNo="$2"
+   local preferNo="$2" # optional
 
    # check preference
    if [ -n "${preferNo}" ] && [ "${preferNo}" = false ]; then
@@ -144,26 +194,115 @@ confirm() {
    fi
 }
 
-# purpose: return name of script being run
-# arguments:
-#   $1 -> message before
-#   $2 -> message after
-script_name() {
-#   echo "$(basename "$(test -L "$0" && readlink "$0" || echo "$0")")"
+program_must_exist() {
+   program_exists $1
 
-   # can be accomplished with trim_longest_left_pattern instead
-   echo -n "$1" && trim_longest_left_pattern $0 / && echo "$2"
+   # throw error on non-zero return value
+   if [ "$?" -ne 0 ]; then
+      notify "You must have $1 installed to continue."
+      pause "Press [Enter] to install it now" true
+      sudo apt-get -y install "$1"
+    fi
 }
 
-# purpose: run a script from another script
-# arguments:
-#   $1 -> name of script to be run
-#   #2 -> debug mode? (optional)
+# loop through check list and add missing packages to install list
+apt_check() {
+   local pkg
+   local pkg_version
+
+   for pkg in "${apt_check_list[@]}"; do
+#      if not_installed $pkg; then
+      if program_exists $pkg; then
+         pkg_version=$(dpkg -s "${pkg}" 2>&1 | grep 'Version:' | cut -d " " -f 2)
+         space_count="$(expr 20 - "${#pkg}")"
+         pack_space_count="$(expr 30 - "${#pkg_version}")"
+         real_space="$(expr ${space_count} + ${pack_space_count} + ${#pkg_version})"
+         printf " ${GREEN_CHK} $pkg %${real_space}.${#pkg_version}s ${pkg_version}\n"
+      else
+         echo " ${YELLOW_BLACK}* $pkg [not installed]${NONE_WHITE}"
+         apt_install_list+=($pkg)
+      fi
+   done
+}
+
+# loop through check list and add missing gems to install list
+gem_check() {
+   local pkg
+   local pkg_version
+
+   for pkg in "${gem_check_list[@]}"; do
+      if gem list $pkg -i; then
+         pkg_version=$(gem list "${pkg}" | grep "${pkg}" | cut -d " " -f 2 | cut -d "(" -f 2 | cut -d ")" -f 1)
+         space_count="$(expr 20 - "${#pkg}")"
+         pack_space_count="$(expr 30 - "${#pkg_version}")"
+         real_space="$(expr ${space_count} + ${pack_space_count} + ${#pkg_version})"
+         printf " ${GREEN_CHK} $pkg %${real_space}.${#pkg_version}s ${pkg_version}\n"
+      else
+         echo " ${YELLOW_BLACK}* $pkg [not installed]${NONE_WHITE}"
+         gem_install_list+=($pkg)
+      fi
+   done
+}
+
+# loop through check list and add missing npms to install list
+npm_check() {
+   local pkg
+   local pkg_version
+
+   for pkg in "${npm_check_list[@]}"; do
+      if npm ls -gs | grep -q "$pkg"; then
+         pkg_version=$(npm ls -gs | grep "${pkg}" | cut -d "@" -f 2)
+         space_count="$(expr 20 - "${#pkg}")"
+         pack_space_count="$(expr 30 - "${#pkg_version}")"
+         real_space="$(expr ${space_count} + ${pack_space_count} + ${#pkg_version})"
+         printf " ${GREEN_CHK} $pkg %${real_space}.${#pkg_version}s ${pkg_version}\n"
+      else
+         echo " ${YELLOW_BLACK}* $pkg [not installed]${NONE_WHITE}"
+         npm_install_list+=($pkg)
+      fi
+   done
+}
+
+# loop through check list and add missing pips to install list
+pip_check() {
+   local pkg
+   local pkg_trim
+   local pkg_version
+
+   for pkg in "${pip_check_list[@]}"; do
+      pkg_trim=$(trim_longest_right_pattern "$pkg" "[")
+      if pip list | grep "$pkg_trim" >/dev/null 2>&1; then
+         pkg_version=$(pip list | grep "${pkg_trim}" | cut -d " " -f 2 | tr -d "(" | tr -d ")")
+         space_count="$(expr 20 - "${#pkg}")"
+         pack_space_count="$(expr 30 - "${#pkg_version}")"
+         real_space="$(expr ${space_count} + ${pack_space_count} + ${#pkg_version})"
+         printf " ${GREEN_CHK}* $pkg %${real_space}.${#pkg_version}s ${pkg_version}\n"
+      else
+         echo " ${YELLOW_BLACK}* $pkg_trim [not installed]${NONE_WHITE}"
+         pip_install_list+=($pkg)
+      fi
+   done
+}
+
+# --------------------------  MISC ACTIONS
+
+# create symlink if source file exists
+lnif() {
+   if [ -e "$1" ]; then
+      ln -sf "$1" "$2"
+   fi
+   ret="$?"
+   debug
+}
+
+# run a script from another script
+# $1 -> name of script to be run
+# $2 -> debug mode? (optional)
 run_script() {
    local name="$1"
 
    # make sure dos2unix is installed
-   not_installed dos2unix && sudo apt-get -y install dos2unix
+   program_must_exist "dos2unix"
 
    # change to scripts directory to run scripts
    cd scripts
@@ -181,11 +320,235 @@ run_script() {
    cd - >/dev/null
 }
 
-# purpose: generate an RSA SSH keypair if none exists or copy from root
-# arguments:
-#   $1 -> SSH directory
-#   $2 -> non-root Linux username
-gen_ssh_keys() {
+# source rvm after installing non-package management version of ruby
+source_rvm() {
+   echo
+   read -p "Press [Enter] to start using rvm..."
+   if grep -q "/usr/local/rvm/scripts/rvm" $HOME/.bashrc; then
+      source /usr/local/rvm/scripts/rvm && echo "sourced rvm"
+   else
+      echo "source /usr/local/rvm/scripts/rvm" >> $HOME/.bashrc
+      source /usr/local/rvm/scripts/rvm && echo "rvm sourced and added to .bashrc"
+   fi
+}
+
+# --------------------------  INSTALL SHIT
+
+# loop through install list and install any packages that are in the list
+# $1 -> to update sources or not
+apt_install() {
+   apt_check
+
+   if [[ ${#apt_install_list[@]} = 0 ]]; then
+      echo -e "No apt packages to install\n"
+   else
+      # update all of the package references before installing anything
+      if [ "${1}" -eq 0 ]; then
+         pause "Press [Enter] to update Ubuntu sources" true
+         sudo apt-get -y update
+      fi
+
+      # install packages in the list
+      read -p "Press [Enter] to install apt packages..."
+      sudo apt-get -y install ${apt_install_list[@]}
+
+      # clean up apt caches
+      sudo apt-get clean
+      echo
+   fi
+}
+
+# install packages from a simple list
+# $1 -> program list (space-separated)
+# $2 -> enable-repo (optional)
+install_apt() {
+   local names="$1"
+   local repo="$2"
+
+   # install applications in the list
+   for apt in $names; do
+      if ! program_exists $apt; then
+         echo
+         read -p "Press [Enter] to install $apt..."
+         [ -z "${repo}" ] && sudo apt-get -y install "$apt" || { sudo apt-add-repository "${repo}"; sudo apt-get update; sudo apt-get -y install "$apt"; }
+      fi
+   done
+}
+
+# loop through install list and install any gems that are in the list
+gem_install() {
+   gem_check
+
+   # make sure ruby is installed
+   program_must_exist "ruby"
+   program_must_exist "rubygems-integration"
+
+   if [[ ${#gem_install_list[@]} = 0 ]]; then
+      echo -e "No gems to install\n"
+   else
+      # install required gems
+      pause "Press [Enter] to install gems" true
+      sudo gem install ${gem_install_list[@]}
+      echo
+   fi
+}
+
+# install gems from a simple list
+# $1 -> gem list (space-separated)
+install_gem() {
+   local names="$1"
+
+   # make sure ruby is installed
+   program_must_exist "ruby"
+   program_must_exist "rubygems-integration"
+
+   # install gems in the list
+   for app in $names; do
+      if ! $(gem list "$app" -i); then
+         echo
+         read -p "Press [Enter] to install $app..."
+         sudo gem install "$app"
+      fi
+   done
+}
+
+# loop through install list and install any npms that are in the list
+npm_install() {
+   npm_check
+
+   # make sure npm is installed
+   program_must_exist "npm"
+   # symlink nodejs to path
+   if [ ! -L /usr/bin/node ]; then
+      sudo ln -s "$(which nodejs)" /usr/bin/node
+   fi
+
+   if [[ ${#npm_install_list[@]} = 0 ]]; then
+      echo -e "No npms to install\n"
+   else
+      # install required npms
+      pause "Press [Enter] to install npms" true
+      sudo npm install -g ${npm_install_list[@]}
+      echo
+   fi
+}
+
+# install npms from a simple list
+# $1 -> npm list (space-separated)
+install_npm() {
+   local names="$1"
+
+   # make sure npm is installed
+   program_must_exist "npm"
+   # symlink nodejs to path
+   if [ ! -L /usr/bin/node ]; then
+      sudo ln -s "$(which nodejs)" /usr/bin/node
+   fi
+
+   # install npm packages in the list
+   for app in $names; do
+      if ! npm ls -gs | grep -qw "$app"; then
+         echo
+         read -p "Press [Enter] to install $app..."
+         sudo npm install -g "$app"
+      fi
+   done
+}
+
+# loop through install list and install any pips that are in the list
+pip_install() {
+   pip_check
+
+   # make sure dependencies are installed
+   program_must_exist "python-pip"
+   program_must_exist "python-keyring"
+
+   if [[ ${#pip_install_list[@]} = 0 ]]; then
+      echo -e "No pips to install\n"
+   else
+      # install required pips
+      pause "Press [Enter] to install pips" true
+      sudo -H pip install ${pip_install_list[@]}
+      echo
+   fi
+}
+
+# install pips from a simpe list
+# $1 -> pip list (space-separated)
+install_pip() {
+   local names="$1"
+
+   # make sure dependencies are installed
+   program_must_exist "python-pip"
+   program_must_exist "python-keyring"
+
+   # install pips in the list
+   for app in $names; do
+      app=$(trim_longest_right_pattern "$app" "[")
+      if ! pip list | grep "$app" >/dev/null 2>&1; then
+         echo
+         read -p "Press [Enter] to install $app..."
+         sudo pip install "$app"
+      fi
+   done
+}
+
+install_ruby() {
+   echo
+   read -p "Press [Enter] to install ruby and rubygems..."
+   if ! ruby -v | grep -q "ruby ${RUBY_V}"; then
+      gpg2 --keyserver hkp://keys.gnupg.net --recv-keys D39DC0E3
+      curl -L "$RUBY_URL" | bash -s stable --ruby="${RUBY_V}"
+   fi
+   source_rmv
+}
+
+# install the keybase cli client
+install_keybase() {
+   if ! program_exists "keybase"; then
+      # change to tmp directory to download file and then back to original directory
+      cd /tmp
+      curl -O https://dist.keybase.io/linux/deb/keybase-latest-amd64.deb && sudo dpkg -i keybase-latest-amd64.deb
+      cd - >/dev/null
+   fi
+}
+
+# install newer version of virtualbox
+install_virtualbox() {
+   if ! program_exists "virtualbox-5.0"; then
+      # add virtualbox to sources list if not already there
+      if ! grep -q "virtualbox" /etc/apt/sources.list; then
+         echo "deb http://download.virtualbox.org/virtualbox/debian trusty contrib" | sudo tee --append /etc/apt/sources.list
+      fi
+      # add signing key
+      wget -q https://www.virtualbox.org/download/oracle_vbox.asc -O- | sudo apt-key add -
+      # update sources and install the latest virtualbox
+      sudo apt-get update
+      install_apt "virtualbox-5.0"
+   fi
+}
+
+# install newer version of vagrant
+install_vagrant() {
+   if ! program_exists "vagrant"; then
+      # change to tmp directory to download file and then back to original directory
+      cd /tmp
+      echo "downloading vagrant..."
+      curl -O https://releases.hashicorp.com/vagrant/1.8.1/vagrant_1.8.1_x86_64.deb && sudo dpkg -i vagrant_1.8.1_x86_64.deb
+      cd - >/dev/null
+   fi
+   # install vagrant-hostsupdater
+   [ -z "$(vagrant plugin list | grep hostsupdater)" ] && echo -e "${LIGHT_GRAY} NOTE: a vpn may be required in China for this... ${STD}" && vagrant plugin install vagrant-hostsupdater
+   # install vagrant-triggers
+   [ -z "$(vagrant plugin list | grep triggers)" ] && echo -e "${LIGHT_GRAY} NOTE: a vpn may be required in China for this... ${STD}" && vagrant plugin install vagrant-triggers
+}
+
+# --------------------------  SSH AND GPG KEYS...(in other words, FUN)
+
+# ssh key for connecting to remote server
+# $1 -> SSH directory
+# $2 -> non-root Linux username
+gen_ssh_key() {
    local ssh_dir="$1"
    local u="$2"
 
@@ -231,11 +594,10 @@ gen_ssh_keys() {
    done
 }
 
-# purpose: set authorized SSH keys for incoming connections on remote host
-# arguments:
-#   $1 -> SSH directory
-#   $2 -> non-root Linux username
-authorized_ssh_keys() {
+# ssh key for authenticating incoming connections on remote host
+# $1 -> SSH directory
+# $2 -> non-root Linux username
+authorized_ssh_key() {
    local ssh_dir="$1"
    local u="$2"
    local ssh_rsa
@@ -265,16 +627,16 @@ authorized_ssh_keys() {
    fi
 }
 
-# purpose: import public GPG key if it doesn't already exist in list of RPM keys
-#          although rpm --import won't import duplicate keys, this is a proof of concept
-# arguments:
-#   $1 -> URL of the public key file
+# import public GPG key if it doesn't already exist in list of RPM keys
+# although rpm --import won't import duplicate keys, this is a proof of concept
+# $1 -> URL of the public key file
 # return: false if URL is empty, else true
 get_public_key() {
    local url="$1"
    local apt_keys="$HOME/apt_keys"
+   local ret
 
-   [ -z "${url}" ] && echo false && return 1
+   [ -z "${url}" ] && alert "missing URL to public key" && return 1
    pause "Press [Enter] to download and import the GPG Key..."
    mkdir -pv "$apt_keys"
    cd "$apt_keys"
@@ -291,5 +653,163 @@ get_public_key() {
    fi
    # change directory back to previous one
    echo -n "changing directory back to " && cd -
+}
+
+# --------------------------  GIT SHIT
+
+#   $1 -> code author's name
+#   $2 -> code author's email
+#   $3 -> editor to use for git
+configure_git()
+{
+   local name="$1"
+   local email="$2"
+   local editor="$3"
+
+   # specify a user
+   git config --global user.name "$name"
+   git config --global user.email "$email"
+   # select a text editor
+   git config --global core.editor "$editor"
+   # set default push and pull behavior to the old method
+   git config --global push.default matching
+   git config --global pull.default matching
+   # create a global .gitignore file
+   git config --global core.excludesfile "$HOME/.gitignore_global"
+   echo "git was configured"
+   read -p "Press [Enter] to view the config..."
+   git config --list
+}
+
+#   $1 -> GitHub username
+#   $2 -> name of upstream repository
+#   $3 -> location of Repos directory
+#   $4 -> use SSH protocal for git operations? (optional)
+clone_repo()
+{
+   local github_user="$1"
+   local address="${github_user}/$2.git"
+   local repos_dir="$3"
+   local use_ssh=$4
+
+   [ -z "${use_ssh}" ] && use_ssh=false
+
+   if [ -d "${repos_dir}/${2}" ]; then
+      echo
+      echo "${2} directory already exists, skipping clone operation..."
+   else
+      echo
+      echo "*** NOTE ***"
+      echo "Make sure \"github.com/${address}\" exists."
+      read -p "Press [Enter] to clone ${address} at GitHub..."
+      if [ "$use_ssh" = true ]; then
+         git clone "git@github.com:${address}"
+      else
+         git clone "https://github.com/${address}"
+      fi
+   fi
+
+   # change to newly cloned directory
+   cd "${2}"
+   echo "changing directory to $_"
+}
+
+#   $1 -> GitHub username
+#   $2 -> name of origin repository
+#   $3 -> set remote upstream or origin (true for upstream)
+#   $4 -> use SSH protocal for git operations? (optional)
+set_remote_repo()
+{
+   local github_user="$1"
+   local address="${github_user}/$2.git"
+   local set_upstream=$3
+   local use_ssh=$4
+
+   [ -z "${use_ssh}" ] && use_ssh=false
+   
+   if [ "${set_upstream}" = true ] && [ "${github_user}" = 'keegoid' ]; then
+#      echo "upstream doesn't exist for $github_user, skipping..."
+      echo false
+   fi
+
+   if git config --list | grep -q "${address}"; then
+      echo
+      echo "remote repo already configured: ${address}"
+   else
+      echo
+      if [ "$set_upstream" = true ]; then
+         read -p "Press [Enter] to assign upstream repository..."
+         if [ "$use_ssh" = true ]; then
+            git remote add upstream "git@github.com:${address}" && echo "remote upstream added: git@github.com:${address}"
+         else
+            git remote add upstream "https://github.com/${address}" && echo "remote upstream added: https://github.com/${address}"
+         fi
+      else
+         echo "*** NOTE ***"
+         echo "Make sure \"github.com/${address}\" exists."
+         echo "Either fork and rename it, or create a new repository in your GitHub."
+         read -p "Press [Enter] to assign remote origin repository..."
+         if [ "$use_ssh" = true ]; then
+            git remote add origin "git@github.com:${address}" && echo "remote origin added: git@github.com:${address}"
+         else
+            git remote add origin "https://github.com/${address}" && echo "remote origin added: https://github.com/${address}"
+         fi
+      fi
+   fi
+}
+
+# create a branch for custom changes so master can receive upstream updates
+# upstream changes can then be merged with the branch interactively
+# $1 -> branch name
+create_branch()
+{
+   local branch_name="$1"
+   
+   echo
+   read -p "Press [Enter] to create a git branch for your site at ${branch_name}..."
+   git checkout -b "${branch_name}"
+
+   # some work and some commits happen
+   # some time passes
+   #git fetch upstream
+   #git rebase upstream/master or git rebase interactive upstream/master
+
+   echo
+   read -p "Press [Enter] to push changes and set branch origin in config..."
+   git push -u origin "${branch_name}"
+
+   echo
+   read -p "Press [Enter] to checkout the master branch again..."
+   git checkout master
+
+   # above could also be done with:
+   # git branch "${branch_name}"
+   # git push origin "${branch_name}"
+   # git branch -u "origin/${branch_name}" "${branch_name}"
+
+   echo
+   echo "*************************************************************************"
+   echo "* - use ${branch_name} branch to make your own site                      "
+   echo "* - use master branch to keep up with changes from the upstream repo     "
+   echo "*************************************************************************"
+}
+
+# add remote upstream repository, fetch and merge changes
+merge_upstream()
+{
+   # pull in changes not present in local repository, without modifying local files
+   echo
+   read -p "Press [Enter] to fetch changes from upstream repository..."
+   git fetch upstream && echo "upstream fetch done"
+
+   # merge any changes fetched into local working files
+   echo
+   echo "*** NOTE ***"
+   echo "If merging changes, press \":wq enter\" to accept the merge message in vi."
+   read -p "Press [Enter] to merge changes..."
+   git merge upstream/master
+
+   # or combine fetch and merge with:
+   #git pull upstream master
 }
 
