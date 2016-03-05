@@ -553,7 +553,7 @@ gen_ssh_key() {
    echo
    # check if id_rsa exists
    if [ -f "${ssh_dir}/id_rsa" ]; then
-      echo "${ssh_dir}/id_rsa already exists"
+      notify "${ssh_dir}/id_rsa already exists"
    else
       # create a new ssh key with provided ssh key comment
       pause "Press [Enter] to generate a new SSH key at: ${ssh_dir}/id_rsa" true
@@ -603,7 +603,7 @@ authorized_ssh_key() {
    echo "incoming SSH connections to a server"
    echo
    if [ -f "${ssh_dir}/authorized_keys" ]; then
-      echo "${ssh_dir}/authorized_keys already exists for ${u}"
+      notify "${ssh_dir}/authorized_keys already exists for ${u}"
    else
 #      passwd "${u}"
 #      echo
@@ -690,8 +690,7 @@ clone_repo()
    [ -z "${use_ssh}" ] && use_ssh=false
 
    if [ -d "${repos_dir}/${2}" ]; then
-      echo
-      echo "${2} directory already exists, skipping clone operation..."
+      notify "${2} directory already exists, skipping clone operation..."
    else
       echo
       echo "*** NOTE ***"
@@ -729,7 +728,7 @@ set_remote_repo()
 
    if git config --list | grep -q "${address}"; then
       echo
-      echo "remote repo already configured: ${address}"
+      notify "remote repo already configured: ${address}"
    else
       echo
       if [ "$set_upstream" = true ]; then
