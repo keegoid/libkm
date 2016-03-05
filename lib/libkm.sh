@@ -200,14 +200,14 @@ apt_check() {
 
    for pkg in "${apt_check_list[@]}"; do
       if not_installed $pkg; then
+         echo " ${YELLOW_BLACK}* $pkg [not installed]${NONE_WHITE}"
+         apt_install_list+=($pkg)
+      else
          pkg_version=$(dpkg -s "${pkg}" 2>&1 | grep 'Version:' | cut -d " " -f 2)
          space_count="$(expr 20 - "${#pkg}")"
          pack_space_count="$(expr 30 - "${#pkg_version}")"
          real_space="$(expr ${space_count} + ${pack_space_count} + ${#pkg_version})"
          printf " ${GREEN_CHK} $pkg %${real_space}.${#pkg_version}s ${pkg_version}\n"
-      else
-         echo " ${YELLOW_BLACK}* $pkg [not installed]${NONE_WHITE}"
-         apt_install_list+=($pkg)
       fi
    done
 }
