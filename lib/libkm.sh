@@ -87,13 +87,13 @@ msg() {
 }
 
 debug() {
-   if [ $DEBUG_MODE -eq 1 ] && [ $RET -gt 0 ]; then
+   if [ "$DEBUG_MODE" -eq 1 ] && [ "$RET" -gt 0 ]; then
       msg "An error occurred in function \"${FUNCNAME[$i+1]}\" on line ${BASH_LINENO[$i+1]}."
    fi
 }
 
 success() {
-   if [ -z "$RET" ] || [ $RET -eq 0 ]; then
+   if [ -z "$RET" ] || [ "$RET" -eq 0 ]; then
       msg "${GREEN_CHK} ${1}${2}"
    fi
 }
@@ -119,16 +119,16 @@ script_name() {
 # --------------------------  CHECKS
 
 is_root() {
-#   [ $(id -u) -eq 0 ] && return 0 || error "must be root"
-   [ $EUID -eq 0 ] && return 0 || error "must be root"
+#   [ "$(id -u)" -eq 0 ] && return 0 || error "must be root"
+   [ "$EUID" -eq 0 ] && return 0 || error "must be root"
 }
  
 program_exists() {
-   local result
+   local result=0
    command -v $1 >/dev/null 2>&1 || { result=1; }
 
    # fail on non-zero return value
-   if [ $result -ne 0 ]; then
+   if [ "$result" -ne 0 ]; then
       return 1
    fi
 
@@ -198,7 +198,7 @@ program_must_exist() {
    program_exists $1
 
    # throw error on non-zero return value
-   if [ $? -ne 0 ]; then
+   if [ "$?" -ne 0 ]; then
       notify "You must have $1 installed to continue."
       pause "Press [Enter] to install it now" true
       sudo apt-get -y install "$1"
@@ -314,7 +314,7 @@ run_script() {
    chmod +x "${name}"
 
    # clear the screen and run the script
-   [ $DEBUG_MODE -eq 0 ] || clear
+   [ "$DEBUG_MODE" -eq 0 ] || clear
    . ./"${name}"
    result=$?
    echo "script: ${name} has finished"
@@ -344,7 +344,7 @@ source_rvm() {
 apt_install() {
    apt_check
 
-   if [[ ${#apt_install_list[@]} = 0 ]]; then
+   if [[ "${#apt_install_list[@]}" -eq 0 ]]; then
       echo -e "No apt packages to install\n"
    else
       # update all of the package references before installing anything
@@ -388,7 +388,7 @@ gem_install() {
    program_must_exist "ruby"
    program_must_exist "rubygems-integration"
 
-   if [[ ${#gem_install_list[@]} = 0 ]]; then
+   if [[ "${#gem_install_list[@]}" -eq 0 ]]; then
       echo -e "No gems to install\n"
    else
       # install required gems
@@ -428,7 +428,7 @@ npm_install() {
       sudo ln -s "$(which nodejs)" /usr/bin/node
    fi
 
-   if [[ ${#npm_install_list[@]} = 0 ]]; then
+   if [[ "${#npm_install_list[@]}" -eq 0 ]]; then
       echo -e "No npms to install\n"
    else
       # install required npms
@@ -468,7 +468,7 @@ pip_install() {
    program_must_exist "python-pip"
    program_must_exist "python-keyring"
 
-   if [[ ${#pip_install_list[@]} = 0 ]]; then
+   if [[ "${#pip_install_list[@]}" -eq 0 ]]; then
       echo -e "No pips to install\n"
    else
       # install required pips
