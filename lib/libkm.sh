@@ -94,7 +94,7 @@ debug() {
 
 success() {
    if [ -z "$RET" ] || [ "$RET" -eq 0 ]; then
-      msg "${GREEN_CHK} ${1}${2}"
+      msg "${BLUE_CHK} ${1}${2}"
    fi
 }
 
@@ -207,7 +207,7 @@ apt_check() {
          space_count="$(expr 20 - "${#pkg}")"
          pack_space_count="$(expr 30 - "${#pkg_version}")"
          real_space="$(expr ${space_count} + ${pack_space_count} + ${#pkg_version})"
-         printf " ${GREEN_CHK} $pkg %${real_space}.${#pkg_version}s ${pkg_version}\n"
+         printf " ${BLUE_CHK} $pkg %${real_space}.${#pkg_version}s ${pkg_version}\n"
       fi
    done
 }
@@ -223,7 +223,7 @@ gem_check() {
          space_count="$(expr 20 - "${#pkg}")"
          pack_space_count="$(expr 30 - "${#pkg_version}")"
          real_space="$(expr ${space_count} + ${pack_space_count} + ${#pkg_version})"
-         printf " ${GREEN_CHK} $pkg %${real_space}.${#pkg_version}s ${pkg_version}\n"
+         printf " ${BLUE_CHK} $pkg %${real_space}.${#pkg_version}s ${pkg_version}\n"
       else
          echo " ${YELLOW_BLACK}* $pkg [not installed]${NONE_WHITE}"
          gem_install_list+=($pkg)
@@ -242,7 +242,7 @@ npm_check() {
          space_count="$(expr 20 - "${#pkg}")"
          pack_space_count="$(expr 30 - "${#pkg_version}")"
          real_space="$(expr ${space_count} + ${pack_space_count} + ${#pkg_version})"
-         printf " ${GREEN_CHK} $pkg %${real_space}.${#pkg_version}s ${pkg_version}\n"
+         printf " ${BLUE_CHK} $pkg %${real_space}.${#pkg_version}s ${pkg_version}\n"
       else
          echo " ${YELLOW_BLACK}* $pkg [not installed]${NONE_WHITE}"
          npm_install_list+=($pkg)
@@ -263,7 +263,7 @@ pip_check() {
          space_count="$(expr 20 - "${#pkg}")"
          pack_space_count="$(expr 30 - "${#pkg_version}")"
          real_space="$(expr ${space_count} + ${pack_space_count} + ${#pkg_version})"
-         printf " ${GREEN_CHK}* $pkg %${real_space}.${#pkg_version}s ${pkg_version}\n"
+         printf " ${BLUE_CHK}* $pkg %${real_space}.${#pkg_version}s ${pkg_version}\n"
       else
          echo " ${YELLOW_BLACK}* $pkg_trim [not installed]${NONE_WHITE}"
          pip_install_list+=($pkg)
