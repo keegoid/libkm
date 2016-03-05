@@ -123,18 +123,6 @@ is_root() {
    [ "$EUID" -eq 0 ] && return 0 || error "must be root"
 }
  
-program_exists() {
-   local result=0
-   command -v $1 >/dev/null 2>&1 || { result=1; }
-
-   # fail on non-zero return value
-   if [ "$result" -ne 0 ]; then
-      return 1
-   fi
-
-   return 0
-}
-
 not_installed() {
    [ -n "$(apt-cache policy ${1} | grep 'Installed: (none)')" ] && return 0 || return 1
 }
@@ -195,10 +183,10 @@ confirm() {
 }
 
 program_must_exist() {
-   program_exists $1
+   not_installed $1
 
    # throw error on non-zero return value
-   if [ "$?" -ne 0 ]; then
+   if [ "$?" -eq 0 ]; then
       notify "You must have $1 installed to continue."
       pause "Press [Enter] to install it now" true
       sudo apt-get -y install "$1"
@@ -211,8 +199,7 @@ apt_check() {
    local pkg_version
 
    for pkg in "${apt_check_list[@]}"; do
-#      if not_installed $pkg; then
-      if program_exists $pkg; then
+      if not_installed $pkg; then
          pkg_version=$(dpkg -s "${pkg}" 2>&1 | grep 'Version:' | cut -d " " -f 2)
          space_count="$(expr 20 - "${#pkg}")"
          pack_space_count="$(expr 30 - "${#pkg_version}")"
@@ -372,7 +359,7 @@ install_apt() {
 
    # install applications in the list
    for apt in $names; do
-      if ! program_exists $apt; then
+      if not_installed $apt; then
          echo
          read -p "Press [Enter] to install $apt..."
          [ -z "${repo}" ] && sudo apt-get -y install "$apt" || { sudo apt-add-repository "${repo}"; sudo apt-get update; sudo apt-get -y install "$apt"; }
@@ -510,7 +497,7 @@ install_ruby() {
 
 # install the keybase cli client
 install_keybase() {
-   if ! program_exists "keybase"; then
+   if not_installed "keybase"; then
       # change to tmp directory to download file and then back to original directory
       cd /tmp
       curl -O https://dist.keybase.io/linux/deb/keybase-latest-amd64.deb && sudo dpkg -i keybase-latest-amd64.deb
@@ -520,7 +507,7 @@ install_keybase() {
 
 # install newer version of virtualbox
 install_virtualbox() {
-   if ! program_exists "virtualbox-5.0"; then
+   if not_installed "virtualbox-5.0"; then
       # add virtualbox to sources list if not already there
       if ! grep -q "virtualbox" /etc/apt/sources.list; then
          echo "deb http://download.virtualbox.org/virtualbox/debian trusty contrib" | sudo tee --append /etc/apt/sources.list
@@ -535,7 +522,7 @@ install_virtualbox() {
 
 # install newer version of vagrant
 install_vagrant() {
-   if ! program_exists "vagrant"; then
+   if not_installed "vagrant"; then
       # change to tmp directory to download file and then back to original directory
       cd /tmp
       echo "downloading vagrant..."
