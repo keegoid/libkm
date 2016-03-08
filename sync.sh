@@ -10,7 +10,7 @@ echo "#                                             "
 echo "# http://keegoid.mit-license.org              "
 echo "# --------------------------------------------"
 
-LIBS_DIR='includes'
+LIBS_DIR=''
 PROJECTS='ubuntu-quick-config'
 
 read -p "Press enter to sync shell librarys to projects..."
