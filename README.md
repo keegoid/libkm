@@ -21,13 +21,12 @@ Spending a little time converting duplicate code into functions isn't too hard, 
 
 ## Usage
 
-This is an example of how to source a library file in your [shell script][ss]:
+1. Copy **libkm.sh** to the root of your project directory.
+1. Source **libkm.sh** at the top of your [shell script][ss]:
 
 ```bash
-# source the library file
-source includes/base.lib
-# can also use the dot notation
-. includes/base.lib
+# sourcing the library file
+source libkm.sh
 ```
 
 ## License
