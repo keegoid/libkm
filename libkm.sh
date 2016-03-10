@@ -593,10 +593,12 @@ create_lxd_container() {
    local image_name="alpine-latest"
    local image_cnt=`expr $(lxc image list | grep -c $image_name) - 1`
    image_name="$image_name-$image_cnt"
-   read -ep "Enter a container name to use with $image_name: " -i "alpine-wp-$image_cnt" container_name
+   lxc image list
+   read -ep "Select an image to use for the new container: " -i "$image_name" selected_image
+   read -ep "Enter a container name to use with $selected_image: " -i "alpine-wp-$image_cnt" container_name
 
    # create and start container
-   lxc launch "$image_name" "$container_name"
+   lxc launch "$selected_image" "$container_name"
 
    # add container's ip to /etc/hosts
    pause "Press [Enter] to add ${container_name}.dev to /etc/hosts"
