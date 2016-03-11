@@ -154,7 +154,6 @@ is_root() {
 }
  
 not_installed() {
-#   [ -n "$(apt-cache policy ${1} | grep 'Installed: (none)')" ] && return 0 || return 1
    if [ "$(dpkg -s ${1} 2>&1 | grep 'Version:')" ]; then
       [ -n "$(apt-cache policy ${1} | grep 'Installed: (none)')" ] && return 0 || return 1
    else
