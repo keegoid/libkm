@@ -591,7 +591,7 @@ create_alpine_lxd_image() {
 
    cd "$repo_dir"
    # remove any previous images
-   sudo rm alpine-v*.tar.gz
+   sudo rm alpine-v*.tar.gz >/dev/null 2>&1
    # download and build the latest alpine image
    sudo ./build-alpine
    # set permissions
