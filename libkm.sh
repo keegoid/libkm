@@ -236,23 +236,27 @@ run_script() {
 
 # backup config files
 # $1 -> backup directory
+# $2 -> files to back up (space separated)
 do_backup() {
    local name
+   local today
 
    confirm "Backup config files before making changes?" true
    [ "$?" -gt 0 ] && return 1
-   if [ -e "$2" ] || [ -e "$3" ] || [ -e "$4" ] || [ -e "$5" ] || [ -e "$6" ] || [ -e "$7" ] || [ -e "$8" ] || [ -e "$9" ] || [ -e "$10" ]; then
-      today=`date +%Y%m%d_%s`
-      [ -d "${1}-$today" ] || mkdir -pv "${1}-$today"
-      for i in "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "$10"; do
-         if [ -e "$i" ] && [ ! -L "$i" ]; then
-            name=$(trim_longest_left_pattern "$i" "/")
-            cp "$i" "${1}-$today/$name" && success "made backup: ${1}-$today/$name"
-         fi
-      done
-      RET="$?"
-      debug
-   fi
+
+   today=`date +%Y%m%d_%s`
+   [ -d "${1}-$today" ] || mkdir -pv "${1}-$today"
+
+   for i in "${2}"; do
+      if [ -e "$i" ] && [ ! -L "$i" ]; then
+         name=$(trim_longest_left_pattern "$i" "/")
+         cp "$i" "${1}-$today/$name" && success "made backup: ${1}-$today/$name"
+      fi
+   done
+
+   RET="$?"
+   debug
+
    return 0
 }
 
