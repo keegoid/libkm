@@ -15,9 +15,9 @@ PROJECTS='quick-config'
 
 read -p "Press enter to sync shell librarys to projects..."
 for proj in $PROJECTS; do
-   echo "$proj"
-#   rsync -vrupE --exclude "*.*~" "lib/" "../$proj/$LIBS_DIR"
-   rsync -vupE "colors.sh" "../$proj"
-   rsync -vupE "libkm.sh" "../$proj"
+    echo "$proj"
+#    rsync -vrupE --exclude "*.*~" "lib/" "../$proj/$LIBS_DIR"
+    rsync -vupE "colors.sh" "../$proj"
+    rsync -vupE "libkm.sh" "../$proj"
 done
 echo "done with sync"
