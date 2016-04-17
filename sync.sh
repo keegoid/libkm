@@ -4,13 +4,13 @@ echo "# A script to sync library files included in  "
 echo "# various scripting projects using rsync      "
 echo "#                                             "
 echo "# Author : Keegan Mullaney                    "
-echo "# Website: http://keegoid.com                 "
+echo "# Website: keegoid.com                        "
 echo "# Email  : keeganmullaney@gmail.com           "
 echo "#                                             "
 echo "# http://keegoid.mit-license.org              "
 echo "# --------------------------------------------"
 
-LIBS_DIR=''
+# LIBS_DIR=''
 PROJECTS='quick-config'
 
 read -p "Press enter to sync shell librarys to projects..."
