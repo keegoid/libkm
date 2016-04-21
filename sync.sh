@@ -11,7 +11,7 @@ echo "# http://keegoid.mit-license.org              "
 echo "# --------------------------------------------"
 
 # LIBS_DIR=''
-PROJECTS='quick-config'
+PROJECTS='qc'
 
 read -p "Press enter to sync shell librarys to projects..."
 for proj in $PROJECTS; do
