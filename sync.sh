@@ -13,7 +13,7 @@ echo "# --------------------------------------------"
 # LIBS_DIR=''
 PROJECTS='qc'
 
-read -p "Press enter to sync shell librarys to projects..."
+read -rp "Press enter to sync shell librarys to projects..."
 for proj in $PROJECTS; do
     echo "$proj"
 #    rsync -vrupE --exclude "*.*~" "lib/" "../$proj/$LIBS_DIR"
