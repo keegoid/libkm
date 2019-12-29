@@ -1,3 +1,4 @@
 # list of file types to ignore
 
 libkm.sublime-workspace
+sftp-config.json
